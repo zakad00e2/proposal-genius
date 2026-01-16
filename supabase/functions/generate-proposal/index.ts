@@ -9,6 +9,7 @@ interface ProposalRequest {
   jobDescription: string;
   proposalLength: "short" | "medium";
   experienceLevel: "beginner" | "intermediate" | "expert";
+  platform: "upwork" | "mostaql";
 }
 
 serve(async (req) => {
@@ -17,7 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    const { jobDescription, proposalLength, experienceLevel }: ProposalRequest = await req.json();
+    const { jobDescription, proposalLength, experienceLevel, platform = "upwork" }: ProposalRequest = await req.json();
 
     if (!jobDescription || !proposalLength || !experienceLevel) {
       return new Response(
@@ -31,20 +32,64 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    const isArabic = platform === "mostaql";
+
     // Define word counts based on proposal length
     const wordCounts = {
-      short: "60-80 words",
-      medium: "120-180 words",
+      short: isArabic ? "60-80 كلمة" : "60-80 words",
+      medium: isArabic ? "120-180 كلمة" : "120-180 words",
     };
 
     // Define tone adjustments based on experience level
-    const experienceTone = {
+    const experienceTone = isArabic ? {
+      beginner: "أظهر الحماس والرغبة في التعلم مع إبراز المعرفة الأساسية. كن متواضعاً لكن واثقاً.",
+      intermediate: "أظهر خبرة قوية مع أمثلة محددة. أبرز القدرات دون مبالغة.",
+      expert: "عبّر عن الخبرة العميقة بشكل طبيعي من خلال الفهم وأسلوب حل المشكلات. دع الخبرة تظهر من خلال الفهم وليس الادعاءات.",
+    } : {
       beginner: "Show enthusiasm and willingness to learn while demonstrating foundational knowledge. Be humble but confident.",
       intermediate: "Demonstrate solid experience with specific examples. Show capability without overstatement.",
       expert: "Convey deep expertise naturally through insight and problem-solving approach. Let expertise show through understanding, not claims.",
     };
 
-    const systemPrompt = `You are an expert Upwork proposal writer who helps freelancers write winning proposals. Your proposals sound human, natural, and professional.
+    const systemPrompt = isArabic ? `أنت كاتب عروض محترف لمنصة مستقل تساعد المستقلين في كتابة عروض ناجحة. عروضك تبدو بشرية وطبيعية واحترافية.
+
+قواعد حاسمة - يجب اتباعها:
+
+1. لا تستخدم أبداً هذه العبارات الآلية أو ما يشابهها:
+   - "أنا محترف ذو مهارات عالية"
+   - "مع خبرة X سنوات"
+   - "لدي خبرة واسعة في"
+   - "أنا واثق أنني أستطيع"
+   - "سيسعدني أن"
+   - "بانتظار ردكم الكريم"
+   - "أنا الشخص المثالي لـ"
+   - "لدي سجل حافل"
+   - "كن مطمئناً"
+   - "لا تتردد في"
+   
+2. متطلبات الأسلوب:
+   - كن واضحاً ومباشراً
+   - اكتب كشخص حقيقي وليس قالباً جاهزاً
+   - كن هادئاً ومحترفاً، ليس بائعاً
+   - لا إيموجي على الإطلاق
+   - لا مبالغة أو تضخيم
+   - لا نقاط أو تنسيق ماركداون
+   - نص فقرات بسيط فقط
+
+3. الهيكل:
+   - ابدأ بتناول مشكلة العميل المحددة بكلماتك (يُظهر أنك قرأت وفهمت)
+   - اشرح بإيجاز أسلوبك في حل مشكلتهم
+   - اختم بدعوة طبيعية وبسيطة للتواصل
+
+4. صيغة الإخراج:
+   - فقرات نصية بسيطة فقط
+   - لا تحيات مثل "مرحباً" أو "عزيزي العميل"
+   - لا توقيعات أو خاتمات
+   - لا ماركداون أو نقاط أو تنسيق
+   - جاهز للنسخ واللصق مباشرة في مستقل
+
+سياق مستوى الخبرة: ${experienceTone[experienceLevel]}
+الطول المستهدف: ${wordCounts[proposalLength]}` : `You are an expert Upwork proposal writer who helps freelancers write winning proposals. Your proposals sound human, natural, and professional.
 
 CRITICAL RULES - YOU MUST FOLLOW THESE:
 
@@ -84,7 +129,13 @@ CRITICAL RULES - YOU MUST FOLLOW THESE:
 Experience Level Context: ${experienceTone[experienceLevel]}
 Target Length: ${wordCounts[proposalLength]}`;
 
-    const userPrompt = `Write an Upwork proposal for this job posting:
+    const userPrompt = isArabic ? `اكتب عرضاً لمنصة مستقل لهذا المشروع:
+
+---
+${jobDescription}
+---
+
+تذكر: ${wordCounts[proposalLength]}، نص بسيط، بأسلوب بشري، بدون عبارات آلية.` : `Write an Upwork proposal for this job posting:
 
 ---
 ${jobDescription}
@@ -111,20 +162,20 @@ Remember: ${wordCounts[proposalLength]}, plain text, human-sounding, no robotic 
     if (!response.ok) {
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+          JSON.stringify({ error: isArabic ? "تم تجاوز الحد المسموح. يرجى المحاولة بعد لحظات." : "Rate limit exceeded. Please try again in a moment." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: "API credits depleted. Please add credits to continue." }),
+          JSON.stringify({ error: isArabic ? "نفدت الاعتمادات. يرجى إضافة رصيد للمتابعة." : "API credits depleted. Please add credits to continue." }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
       return new Response(
-        JSON.stringify({ error: "Failed to generate proposal" }),
+        JSON.stringify({ error: isArabic ? "فشل في إنشاء العرض" : "Failed to generate proposal" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
