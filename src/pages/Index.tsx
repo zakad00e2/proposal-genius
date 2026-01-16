@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { Header } from "@/components/Header";
-import { ProposalForm } from "@/components/ProposalForm";
+import { ProposalForm, Platform } from "@/components/ProposalForm";
 import { ProposalOutput } from "@/components/ProposalOutput";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,25 +8,30 @@ import { supabase } from "@/integrations/supabase/client";
 const Index = () => {
   const [proposal, setProposal] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [platform, setPlatform] = useState<Platform>("upwork");
   const [lastRequest, setLastRequest] = useState<{
     jobDescription: string;
     proposalLength: "short" | "medium";
     experienceLevel: "beginner" | "intermediate" | "expert";
+    platform: Platform;
   } | null>(null);
   const { toast } = useToast();
+
+  const isArabic = platform === "mostaql";
 
   const generateProposal = useCallback(
     async (
       jobDescription: string,
       proposalLength: "short" | "medium",
-      experienceLevel: "beginner" | "intermediate" | "expert"
+      experienceLevel: "beginner" | "intermediate" | "expert",
+      platform: Platform
     ) => {
       setIsLoading(true);
-      setLastRequest({ jobDescription, proposalLength, experienceLevel });
+      setLastRequest({ jobDescription, proposalLength, experienceLevel, platform });
 
       try {
         const { data, error } = await supabase.functions.invoke("generate-proposal", {
-          body: { jobDescription, proposalLength, experienceLevel },
+          body: { jobDescription, proposalLength, experienceLevel, platform },
         });
 
         if (error) {
@@ -45,15 +50,15 @@ const Index = () => {
       } catch (error) {
         console.error("Error generating proposal:", error);
         toast({
-          title: "Generation failed",
-          description: error instanceof Error ? error.message : "Please try again.",
+          title: isArabic ? "فشل الإنشاء" : "Generation failed",
+          description: error instanceof Error ? error.message : (isArabic ? "يرجى المحاولة مرة أخرى." : "Please try again."),
           variant: "destructive",
         });
       } finally {
         setIsLoading(false);
       }
     },
-    [toast]
+    [toast, isArabic]
   );
 
   const handleRegenerate = useCallback(() => {
@@ -61,10 +66,16 @@ const Index = () => {
       generateProposal(
         lastRequest.jobDescription,
         lastRequest.proposalLength,
-        lastRequest.experienceLevel
+        lastRequest.experienceLevel,
+        lastRequest.platform
       );
     }
   }, [lastRequest, generateProposal]);
+
+  const handlePlatformChange = (newPlatform: Platform) => {
+    setPlatform(newPlatform);
+    setProposal(""); // Clear proposal when platform changes
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -73,15 +84,22 @@ const Index = () => {
       <main className="container max-w-3xl mx-auto px-4 py-8 space-y-8">
         <div className="text-center space-y-2">
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground text-balance">
-            Write winning Upwork proposals
+            {isArabic ? "اكتب عروضاً احترافية لمستقل" : "Write winning Upwork proposals"}
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Paste a job description and get a professional, human-sounding proposal in seconds. No robotic templates.
+            {isArabic 
+              ? "الصق وصف المشروع واحصل على عرض احترافي بأسلوب بشري في ثوانٍ. بدون قوالب جاهزة."
+              : "Paste a job description and get a professional, human-sounding proposal in seconds. No robotic templates."}
           </p>
         </div>
 
         <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
-          <ProposalForm onGenerate={generateProposal} isLoading={isLoading} />
+          <ProposalForm 
+            onGenerate={generateProposal} 
+            isLoading={isLoading}
+            platform={platform}
+            onPlatformChange={handlePlatformChange}
+          />
         </div>
 
         {proposal && (
@@ -90,6 +108,7 @@ const Index = () => {
               proposal={proposal}
               onRegenerate={handleRegenerate}
               isLoading={isLoading}
+              platform={platform}
             />
           </div>
         )}
@@ -98,7 +117,7 @@ const Index = () => {
       <footer className="border-t border-border mt-auto">
         <div className="container max-w-3xl mx-auto px-4 py-6">
           <p className="text-center text-xs text-muted-foreground">
-            Designed for Upwork. More platforms coming soon.
+            {isArabic ? "مصمم لمستقل. المزيد من المنصات قريباً." : "Designed for Upwork. More platforms coming soon."}
           </p>
         </div>
       </footer>
