@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -18,7 +19,8 @@ interface ProposalFormProps {
     jobDescription: string,
     proposalLength: "short" | "medium",
     experienceLevel: "beginner" | "intermediate" | "expert",
-    platform: Platform
+    platform: Platform,
+    clientName: string
   ) => Promise<void>;
   isLoading: boolean;
   platform: Platform;
@@ -27,6 +29,7 @@ interface ProposalFormProps {
 
 export function ProposalForm({ onGenerate, isLoading, platform, onPlatformChange }: ProposalFormProps) {
   const [jobDescription, setJobDescription] = useState("");
+  const [clientName, setClientName] = useState("");
   const [proposalLength, setProposalLength] = useState<"short" | "medium">("medium");
   const [experienceLevel, setExperienceLevel] = useState<"beginner" | "intermediate" | "expert">("intermediate");
 
@@ -35,7 +38,7 @@ export function ProposalForm({ onGenerate, isLoading, platform, onPlatformChange
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!jobDescription.trim()) return;
-    await onGenerate(jobDescription, proposalLength, experienceLevel, platform);
+    await onGenerate(jobDescription, proposalLength, experienceLevel, platform, clientName);
   };
 
   return (
@@ -48,6 +51,7 @@ export function ProposalForm({ onGenerate, isLoading, platform, onPlatformChange
           value={platform}
           onValueChange={(value: Platform) => onPlatformChange(value)}
           disabled={isLoading}
+          dir={isArabic ? "rtl" : "ltr"}
         >
           <SelectTrigger id="platform" className="bg-background">
             <SelectValue />
@@ -57,6 +61,22 @@ export function ProposalForm({ onGenerate, isLoading, platform, onPlatformChange
             <SelectItem value="mostaql">مستقل (العربية)</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+
+      <div className="space-y-2">
+        <Label htmlFor="client-name" className="text-sm font-medium text-foreground">
+          {isArabic ? "اسم العميل (اختياري)" : "Client's Name (Optional)"}
+        </Label>
+        <Input
+          id="client-name"
+          placeholder={isArabic ? "أدخل اسم العميل إذا كان متاحاً..." : "Enter client's name if available..."}
+          value={clientName}
+          onChange={(e) => setClientName(e.target.value)}
+          className="bg-background border-input focus:ring-2 focus:ring-primary/20 transition-shadow"
+          dir={isArabic ? "rtl" : "ltr"}
+          disabled={isLoading}
+        />
       </div>
 
       <div className="space-y-2">
@@ -86,6 +106,7 @@ export function ProposalForm({ onGenerate, isLoading, platform, onPlatformChange
             value={proposalLength}
             onValueChange={(value: "short" | "medium") => setProposalLength(value)}
             disabled={isLoading}
+            dir={isArabic ? "rtl" : "ltr"}
           >
             <SelectTrigger id="proposal-length" className="bg-background">
               <SelectValue />
@@ -105,6 +126,7 @@ export function ProposalForm({ onGenerate, isLoading, platform, onPlatformChange
             value={experienceLevel}
             onValueChange={(value: "beginner" | "intermediate" | "expert") => setExperienceLevel(value)}
             disabled={isLoading}
+            dir={isArabic ? "rtl" : "ltr"}
           >
             <SelectTrigger id="experience-level" className="bg-background">
               <SelectValue />
@@ -126,12 +148,12 @@ export function ProposalForm({ onGenerate, isLoading, platform, onPlatformChange
       >
         {isLoading ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
             {isArabic ? "جارٍ الإنشاء..." : "Generating..."}
           </>
         ) : (
           <>
-            <Sparkles className="mr-2 h-4 w-4" />
+            <Sparkles className="h-4 w-4" />
             {isArabic ? "إنشاء العرض" : "Generate Proposal"}
           </>
         )}

@@ -55,7 +55,7 @@ export function ProposalOutput({ proposal, onRegenerate, isLoading, platform }: 
             onClick={onRegenerate}
             disabled={isLoading}
           >
-            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
             {isArabic ? "إعادة الإنشاء" : "Regenerate"}
           </Button>
           <Button
@@ -66,12 +66,12 @@ export function ProposalOutput({ proposal, onRegenerate, isLoading, platform }: 
           >
             {copied ? (
               <>
-                <Check className="mr-2 h-4 w-4" />
+                <Check className="h-4 w-4" />
                 {isArabic ? "تم النسخ" : "Copied"}
               </>
             ) : (
               <>
-                <Copy className="mr-2 h-4 w-4" />
+                <Copy className="h-4 w-4" />
                 {isArabic ? "نسخ" : "Copy"}
               </>
             )}

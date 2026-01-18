@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { ProposalForm, Platform } from "@/components/ProposalForm";
 import { ProposalOutput } from "@/components/ProposalOutput";
@@ -14,24 +14,31 @@ const Index = () => {
     proposalLength: "short" | "medium";
     experienceLevel: "beginner" | "intermediate" | "expert";
     platform: Platform;
+    clientName?: string;
   } | null>(null);
   const { toast } = useToast();
 
   const isArabic = platform === "mostaql";
+
+  useEffect(() => {
+    document.documentElement.dir = isArabic ? "rtl" : "ltr";
+    document.documentElement.lang = isArabic ? "ar" : "en";
+  }, [isArabic]);
 
   const generateProposal = useCallback(
     async (
       jobDescription: string,
       proposalLength: "short" | "medium",
       experienceLevel: "beginner" | "intermediate" | "expert",
-      platform: Platform
+      platform: Platform,
+      clientName?: string
     ) => {
       setIsLoading(true);
-      setLastRequest({ jobDescription, proposalLength, experienceLevel, platform });
+      setLastRequest({ jobDescription, proposalLength, experienceLevel, platform, clientName });
 
       try {
         const { data, error } = await supabase.functions.invoke("generate-proposal", {
-          body: { jobDescription, proposalLength, experienceLevel, platform },
+          body: { jobDescription, proposalLength, experienceLevel, platform, clientName },
         });
 
         if (error) {
@@ -43,7 +50,14 @@ const Index = () => {
         }
 
         if (data?.proposal) {
-          setProposal(data.proposal);
+          let finalProposal = data.proposal;
+          if (clientName && clientName.trim()) {
+            const greeting = platform === "mostaql" 
+              ? `السلام عليكم أستاذ ${clientName.trim()}.\n\n` 
+              : `Hi ${clientName.trim()},\n\n`;
+            finalProposal = greeting + finalProposal;
+          }
+          setProposal(finalProposal);
         } else {
           throw new Error("No proposal returned");
         }
@@ -67,7 +81,8 @@ const Index = () => {
         lastRequest.jobDescription,
         lastRequest.proposalLength,
         lastRequest.experienceLevel,
-        lastRequest.platform
+        lastRequest.platform,
+        lastRequest.clientName
       );
     }
   }, [lastRequest, generateProposal]);
@@ -78,7 +93,10 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div 
+      className={`min-h-screen bg-background ${isArabic ? "font-arabic" : ""}`}
+      dir={isArabic ? "rtl" : "ltr"}
+    >
       <Header />
       
       <main className="container max-w-3xl mx-auto px-4 py-8 space-y-8">

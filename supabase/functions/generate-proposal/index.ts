@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -10,6 +11,7 @@ interface ProposalRequest {
   proposalLength: "short" | "medium";
   experienceLevel: "beginner" | "intermediate" | "expert";
   platform: "upwork" | "mostaql";
+  clientName?: string;
 }
 
 serve(async (req) => {
@@ -18,7 +20,7 @@ serve(async (req) => {
   }
 
   try {
-    const { jobDescription, proposalLength, experienceLevel, platform = "upwork" }: ProposalRequest = await req.json();
+    const { jobDescription, proposalLength, experienceLevel, platform = "upwork", clientName }: ProposalRequest = await req.json();
 
     if (!jobDescription || !proposalLength || !experienceLevel) {
       return new Response(
@@ -67,19 +69,36 @@ serve(async (req) => {
    - "كن مطمئناً"
    - "لا تتردد في"
    
-2. متطلبات الأسلوب:
-   - كن واضحاً ومباشراً
-   - اكتب كشخص حقيقي وليس قالباً جاهزاً
-   - كن هادئاً ومحترفاً، ليس بائعاً
-   - لا إيموجي على الإطلاق
-   - لا مبالغة أو تضخيم
-   - لا نقاط أو تنسيق ماركداون
+2.متطلبات الأسلوب:
+
+كن واضحاً ومباشراً
+
+اكتب كشخص حقيقي وليس قالباً جاهزاً
+
+كن هادئاً ومحترفاً، ليس بائعاً
+
+لا إيموجي على الإطلاق
+
+لا مبالغة أو تضخيم
+
+لا حشو: احذف أي جملة لا تضيف قيمة عملية أو قرار واضح
+
+لا نقاط أو تنسيق ماركداون
+
    - نص فقرات بسيط فقط
+   - *مهم جداً*: قسّم العرض إلى فقرات صغيرة جداً. كل فقرة سطر واحد أو سطرين فقط. اترك سطراً فارغاً بين كل فقرة والأخرى.
 
 3. الهيكل:
-   - ابدأ بتناول مشكلة العميل المحددة بكلماتك (يُظهر أنك قرأت وفهمت)
-   - اشرح بإيجاز أسلوبك في حل مشكلتهم
-   - اختم بدعوة طبيعية وبسيطة للتواصل
+
+ابدأ بتناول مشكلة العميل المحددة بكلماتك (يُظهر أنك قرأت وفهمت)
+
+أضف جملة أو جملتين تعيد تعريف “ماذا يعني النجاح” في هذا المشروع بناءً على وصف العميل فقط
+
+اشرح بإيجاز أسلوبك في حل مشكلتهم بخطة تنفيذ قصيرة داخل النص (بدون نقاط): مراجعة الموجود ثم تحديد الفجوات ثم التنفيذ والتحسين ثم الاختبار والتسليم
+
+اذكر داخل العرض 2 إلى 3 تفاصيل ملموسة مأخوذة من وصف العميل حرفياً (مثلاً: نوع الموقع/عدد الصفحات/لغات/ربط API/الأداء/التصميم) بدون اختراع تفاصيل غير مذكورة
+
+اختم بدعوة طبيعية وبسيطة للتواصل تتضمن سؤالاً واحداً فقط يساعد على بدء العمل فوراً (ولا تضع أكثر من سؤال)
 
 4. صيغة الإخراج:
    - فقرات نصية بسيطة فقط
@@ -88,46 +107,40 @@ serve(async (req) => {
    - لا ماركداون أو نقاط أو تنسيق
    - جاهز للنسخ واللصق مباشرة في مستقل
 
+   5.فحص جودة قبل الإخراج (يُطبّق داخلياً دون ذكره في النص):
+
+لا توجد أي عبارة من القائمة الممنوعة أو ما يشابهها
+
+لا توجد مبالغة أو ادعاءات غير مدعومة من وصف العميل
+
+تم ذكر 2 إلى 3 تفاصيل ملموسة من وصف العميل فقط
+
+انتهى النص  بسؤال واحد فقط + بدعوة تواصل بسيطة 
 سياق مستوى الخبرة: ${experienceTone[experienceLevel]}
-الطول المستهدف: ${wordCounts[proposalLength]}` : `You are an expert Upwork proposal writer who helps freelancers write winning proposals. Your proposals sound human, natural, and professional.
+الطول المستهدف: ${wordCounts[proposalLength]}` : `Write a professional Upwork proposal.
 
-CRITICAL RULES - YOU MUST FOLLOW THESE:
+FORMAT (mandatory):
+- Very short paragraphs (1-2 sentences each)
+- Blank line between each paragraph
+- No greetings, no sign-offs
+- No bullets, no markdown
 
-1. NEVER use these robotic phrases or anything similar:
-   - "I am a highly skilled professional"
-   - "With X years of experience"
-   - "I have extensive experience in"
-   - "I am confident that I can"
-   - "I would be delighted to"
-   - "Looking forward to hearing from you"
-   - "I am the perfect fit for"
-   - "I have a proven track record"
-   - "Rest assured"
-   - "Please feel free to"
-   
-2. TONE REQUIREMENTS:
-   - Be clear and direct
-   - Sound like a real person, not a template
-   - Be calm and professional, not salesy
-   - No emojis whatsoever
-   - No exaggeration or superlatives
-   - No bullet points or markdown formatting
-   - Plain paragraph text only
+CONTENT:
+- Start with understanding the client's problem
+- Briefly explain your approach
+- End with ONE question
 
-3. STRUCTURE:
-   - Start by addressing the client's specific problem in your own words (shows you read and understood)
-   - Briefly explain your approach to solving their problem
-   - End with a simple, natural call to action
+FORBIDDEN: "highly skilled" - "X years experience" - "I am confident" - "looking forward"
 
-4. OUTPUT FORMAT:
-   - Plain text paragraphs only
-   - No greetings like "Hi there" or "Dear Client"
-   - No sign-offs or signatures
-   - No markdown, bullets, or formatting
-   - Ready to copy-paste directly into Upwork
+EXAMPLE FORMAT:
+I see you need an e-commerce website built.
 
-Experience Level Context: ${experienceTone[experienceLevel]}
-Target Length: ${wordCounts[proposalLength]}`;
+I'll start by reviewing requirements, then design and develop.
+
+Do you have a design ready or need one from scratch?
+
+Length: ${wordCounts[proposalLength]}
+Experience: ${experienceTone[experienceLevel]}`;
 
     const userPrompt = isArabic ? `اكتب عرضاً لمنصة مستقل لهذا المشروع:
 
@@ -150,12 +163,12 @@ Remember: ${wordCounts[proposalLength]}, plain text, human-sounding, no robotic 
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "openai/gpt-4o",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        temperature: 0.7,
+        temperature: 0.3,
       }),
     });
 
