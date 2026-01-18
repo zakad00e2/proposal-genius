@@ -135,7 +135,7 @@ const Index = () => {
       <footer className="border-t border-border mt-auto">
         <div className="container max-w-3xl mx-auto px-4 py-6">
           <p className="text-center text-xs text-muted-foreground">
-            {isArabic ? "مصمم لمستقل. المزيد من المنصات قريباً." : "Designed for Upwork. More platforms coming soon."}
+            {isArabic ? "© جميع الحقوق محفوظة لزكريا صافي" : "© All rights reserved to Zakaria Safi"}
           </p>
         </div>
       </footer>
