@@ -1,6 +1,4 @@
 // @ts-nocheck
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -14,13 +12,21 @@ interface ProposalRequest {
   clientName?: string;
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { jobDescription, proposalLength, experienceLevel, platform = "upwork", clientName }: ProposalRequest = await req.json();
+    const requestText = await req.text();
+    if (!requestText) {
+      return new Response(
+        JSON.stringify({ error: "Empty request body" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { jobDescription, proposalLength, experienceLevel, platform = "upwork", clientName }: ProposalRequest = JSON.parse(requestText);
 
     if (!jobDescription || !proposalLength || !experienceLevel) {
       return new Response(

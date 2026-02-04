@@ -4,11 +4,20 @@ import { ProposalForm, Platform } from "@/components/ProposalForm";
 import { ProposalOutput } from "@/components/ProposalOutput";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { DollarSign, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+interface PricingData {
+  paragraph: string;
+  price: number;
+}
 
 const Index = () => {
   const [proposal, setProposal] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [platform, setPlatform] = useState<Platform>("upwork");
+  const [pricingData, setPricingData] = useState<PricingData | null>(null);
   const [lastRequest, setLastRequest] = useState<{
     jobDescription: string;
     proposalLength: "short" | "medium";
@@ -19,6 +28,26 @@ const Index = () => {
   const { toast } = useToast();
 
   const isArabic = platform === "mostaql";
+
+  // Check for pricing data from sessionStorage on mount
+  useEffect(() => {
+    const storedPricingData = sessionStorage.getItem("offerly_pricing_data");
+    if (storedPricingData) {
+      try {
+        const parsed = JSON.parse(storedPricingData);
+        setPricingData(parsed);
+        // Switch to Arabic platform since pricing is in Arabic
+        setPlatform("mostaql");
+        sessionStorage.removeItem("offerly_pricing_data");
+        toast({
+          title: "تم استلام بيانات التسعير",
+          description: `السعر المحدد: $${parsed.price}`,
+        });
+      } catch {
+        console.error("Failed to parse pricing data");
+      }
+    }
+  }, [toast]);
 
   useEffect(() => {
     document.documentElement.dir = isArabic ? "rtl" : "ltr";
@@ -63,9 +92,17 @@ const Index = () => {
         }
       } catch (error) {
         console.error("Error generating proposal:", error);
+        let errorMessage = error instanceof Error ? error.message : (isArabic ? "يرجى المحاولة مرة أخرى." : "Please try again.");
+        
+        if (errorMessage.includes("Failed to send a request")) {
+          errorMessage = isArabic 
+            ? "تعذر الاتصال بالخادم. قد يكون هناك ضغط على الخدمة، يرجى المحاولة بعد قليل." 
+            : "Could not connect to server. The service might be busy, please try again momentarily.";
+        }
+
         toast({
           title: isArabic ? "فشل الإنشاء" : "Generation failed",
-          description: error instanceof Error ? error.message : (isArabic ? "يرجى المحاولة مرة أخرى." : "Please try again."),
+          description: errorMessage,
           variant: "destructive",
         });
       } finally {
@@ -111,12 +148,40 @@ const Index = () => {
           </p>
         </div>
 
+        {/* Pricing Data Alert */}
+        {pricingData && (
+          <Alert className="bg-primary/5 border-primary/20">
+            <DollarSign className="h-4 w-4" />
+            <AlertTitle className="flex items-center justify-between">
+              <span>بيانات التسعير جاهزة</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setPricingData(null)}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </AlertTitle>
+            <AlertDescription className="mt-2">
+              <p className="text-sm mb-2">السعر المحدد: <strong>${pricingData.price}</strong></p>
+              <div className="bg-muted/50 rounded p-2 text-xs whitespace-pre-wrap max-h-32 overflow-y-auto">
+                {pricingData.paragraph}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                ستتم إضافة فقرة التسعير تلقائياً إلى العرض المُنشأ
+              </p>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
           <ProposalForm 
             onGenerate={generateProposal} 
             isLoading={isLoading}
             platform={platform}
             onPlatformChange={handlePlatformChange}
+            pricingParagraph={pricingData?.paragraph}
           />
         </div>
 

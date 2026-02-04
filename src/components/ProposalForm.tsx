@@ -25,9 +25,10 @@ interface ProposalFormProps {
   isLoading: boolean;
   platform: Platform;
   onPlatformChange: (platform: Platform) => void;
+  pricingParagraph?: string;
 }
 
-export function ProposalForm({ onGenerate, isLoading, platform, onPlatformChange }: ProposalFormProps) {
+export function ProposalForm({ onGenerate, isLoading, platform, onPlatformChange, pricingParagraph }: ProposalFormProps) {
   const [jobDescription, setJobDescription] = useState("");
   const [clientName, setClientName] = useState("");
   const [proposalLength, setProposalLength] = useState<"short" | "medium">("medium");
@@ -38,7 +39,11 @@ export function ProposalForm({ onGenerate, isLoading, platform, onPlatformChange
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!jobDescription.trim()) return;
-    await onGenerate(jobDescription, proposalLength, experienceLevel, platform, clientName);
+    // Append pricing paragraph to job description if available
+    const fullDescription = pricingParagraph 
+      ? `${jobDescription}\n\n---\nمعلومات التسعير للمرجع:\n${pricingParagraph}`
+      : jobDescription;
+    await onGenerate(fullDescription, proposalLength, experienceLevel, platform, clientName);
   };
 
   return (
