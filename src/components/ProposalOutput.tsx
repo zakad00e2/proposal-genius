@@ -2,39 +2,32 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, Copy, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { Platform } from "./ProposalForm";
+import { usePlatform } from "@/hooks/usePlatform";
 
 interface ProposalOutputProps {
   proposal: string;
   onRegenerate: () => void;
   isLoading: boolean;
-  platform: Platform;
 }
 
-export function ProposalOutput({ proposal, onRegenerate, isLoading, platform }: ProposalOutputProps) {
+export function ProposalOutput({ proposal, onRegenerate, isLoading }: ProposalOutputProps) {
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
-
-  const isArabic = platform === "mostaql";
-  const platformName = isArabic ? "مستقل" : "Upwork";
+  const { t, dir } = usePlatform();
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(proposal);
       setCopied(true);
       toast({
-        title: isArabic ? "تم النسخ" : "Copied to clipboard",
-        description: isArabic 
-          ? "عرضك جاهز للصق في مستقل." 
-          : "Your proposal is ready to paste into Upwork.",
+        title: t('output.copySuccess'),
+        description: t('output.copySuccessDesc'),
       });
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       toast({
-        title: isArabic ? "فشل النسخ" : "Failed to copy",
-        description: isArabic 
-          ? "يرجى تحديد النص ونسخه يدوياً." 
-          : "Please select and copy the text manually.",
+        title: t('output.copyFail'),
+        description: t('output.copyFailDesc'),
         variant: "destructive",
       });
     }
@@ -46,7 +39,7 @@ export function ProposalOutput({ proposal, onRegenerate, isLoading, platform }: 
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-foreground">
-          {isArabic ? "عرضك" : "Your Proposal"}
+          {t('output.title')}
         </h2>
         <div className="flex gap-2">
           <Button
@@ -56,7 +49,7 @@ export function ProposalOutput({ proposal, onRegenerate, isLoading, platform }: 
             disabled={isLoading}
           >
             <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
-            {isArabic ? "إعادة الإنشاء" : "Regenerate"}
+            {t('output.regenerate')}
           </Button>
           <Button
             variant="default"
@@ -67,12 +60,12 @@ export function ProposalOutput({ proposal, onRegenerate, isLoading, platform }: 
             {copied ? (
               <>
                 <Check className="h-4 w-4" />
-                {isArabic ? "تم النسخ" : "Copied"}
+                {t('output.copied')}
               </>
             ) : (
               <>
                 <Copy className="h-4 w-4" />
-                {isArabic ? "نسخ" : "Copy"}
+                {t('output.copy')}
               </>
             )}
           </Button>
@@ -83,7 +76,7 @@ export function ProposalOutput({ proposal, onRegenerate, isLoading, platform }: 
         <div className="p-6 rounded-lg bg-secondary/50 border border-border">
           <p 
             className="text-foreground leading-relaxed whitespace-pre-wrap"
-            dir={isArabic ? "rtl" : "ltr"}
+            dir={dir}
           >
             {proposal}
           </p>
@@ -91,9 +84,7 @@ export function ProposalOutput({ proposal, onRegenerate, isLoading, platform }: 
       </div>
 
       <p className="text-xs text-muted-foreground text-center">
-        {isArabic 
-          ? "راجع العرض وخصّصه قبل الإرسال. أضف روابط معرض أعمالك إذا كان ذلك مناسباً."
-          : "Review and personalize before sending. Add specific portfolio links if relevant."}
+        {t('output.hint')}
       </p>
     </div>
   );

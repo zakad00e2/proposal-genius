@@ -1,9 +1,11 @@
 import { FileText, Calculator } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { usePlatform } from "@/hooks/usePlatform";
 
 export function Header() {
   const location = useLocation();
+  const { t } = usePlatform();
   
   return (
     <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-10" dir="ltr">
@@ -13,7 +15,7 @@ export function Header() {
             <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-primary-foreground">
               <FileText className="h-5 w-5" />
             </div>
-            <div>
+            <div className="text-left font-sans">
               <h1 className="text-lg font-semibold text-foreground">Offerly</h1>
               <p className="text-xs text-muted-foreground">For freelancers</p>
             </div>
@@ -30,9 +32,9 @@ export function Header() {
               )}
             >
               <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">مولّد العروض</span>
+              <span className="hidden sm:inline">{t('header.nav.proposals')}</span>
             </Link>
-            {/* <Link 
+            <Link 
               to="/pricing"
               className={cn(
                 "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
@@ -42,8 +44,8 @@ export function Header() {
               )}
             >
               <Calculator className="h-4 w-4" />
-              <span className="hidden sm:inline">تحديد السعر</span>
-            </Link> */}
+              <span className="hidden sm:inline">{t('header.nav.pricing')}</span>
+            </Link>
           </nav>
         </div>
       </div>

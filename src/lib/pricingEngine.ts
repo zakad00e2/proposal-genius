@@ -106,23 +106,23 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
 // Base rates for each service type (in USD)
 export const BASE_RATES: Record<ServiceType, number> = {
   landing_page: 50,
-  wordpress_website: 150,
-  woocommerce_store: 300,
+  wordpress_website: 100,
+  woocommerce_store: 250,
   ui_fixes: 40,
-  api_integration: 90,
-  maintenance: 60,
-  seo_basic: 80,
+  api_integration: 70,
+  maintenance: 70,
+  seo_basic: 60,
 };
 
 // Base hours for each service type
 export const BASE_HOURS: Record<ServiceType, number> = {
   landing_page: 8,
-  wordpress_website: 20,
-  woocommerce_store: 35,
-  ui_fixes: 4,
+  wordpress_website: 15,
+  woocommerce_store: 25,
+  ui_fixes: 10,
   api_integration: 15,
-  maintenance: 6,
-  seo_basic: 8,
+  maintenance: 10,
+  seo_basic: 10,
 };
 
 // Add-on prices
@@ -131,10 +131,10 @@ export const ADDON_PRICES: Record<Addon, number> = {
   shipping_integration: 40,
   user_accounts: 40,
   admin_dashboard: 60,
-  api_sync: 100,
+  api_sync: 60,
   blog_setup: 40,
-  performance_optimization: 60,
-  seo_setup: 30,
+  performance_optimization: 50,
+  seo_setup: 50,
 };
 
 // Add-on hours
@@ -244,9 +244,9 @@ function calculateExtras(input: PricingInput): { price: number; hours: number } 
   let extraPrice = 0;
   let extraHours = 0;
   
-  // Extra pages (after first 5 for websites)
+  // Extra pages (charge for every page for websites, first page included for landing page)
   if (['wordpress_website', 'woocommerce_store', 'landing_page'].includes(input.service_type)) {
-    const includedPages = input.service_type === 'landing_page' ? 1 : 5;
+    const includedPages = input.service_type === 'landing_page' ? 1 : 0;
     const extraPages = Math.max(0, input.pages - includedPages);
     extraPrice += extraPages * 30; // $30 per extra page
     extraHours += extraPages * 1.5; // 1.5 hours per extra page

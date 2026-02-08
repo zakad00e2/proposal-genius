@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { ProposalForm, Platform } from "@/components/ProposalForm";
 import { ProposalOutput } from "@/components/ProposalOutput";
 import { useToast } from "@/hooks/use-toast";
+import { usePlatform } from "@/hooks/usePlatform";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { DollarSign, X } from "lucide-react";
@@ -16,7 +17,6 @@ interface PricingData {
 const Index = () => {
   const [proposal, setProposal] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [platform, setPlatform] = useState<Platform>("upwork");
   const [pricingData, setPricingData] = useState<PricingData | null>(null);
   const [lastRequest, setLastRequest] = useState<{
     jobDescription: string;
@@ -26,8 +26,7 @@ const Index = () => {
     clientName?: string;
   } | null>(null);
   const { toast } = useToast();
-
-  const isArabic = platform === "mostaql";
+  const { platform, setPlatform, isArabic, dir, t } = usePlatform();
 
   // Check for pricing data from sessionStorage on mount
   useEffect(() => {
@@ -40,19 +39,14 @@ const Index = () => {
         setPlatform("mostaql");
         sessionStorage.removeItem("offerly_pricing_data");
         toast({
-          title: "تم استلام بيانات التسعير",
-          description: `السعر المحدد: $${parsed.price}`,
+          title: t('index.pricingReceived.title'),
+          description: `${t('index.pricingReceived.desc')}${parsed.price}`,
         });
       } catch {
         console.error("Failed to parse pricing data");
       }
     }
-  }, [toast]);
-
-  useEffect(() => {
-    document.documentElement.dir = isArabic ? "rtl" : "ltr";
-    document.documentElement.lang = isArabic ? "ar" : "en";
-  }, [isArabic]);
+  }, [toast, setPlatform, t]);
 
   const generateProposal = useCallback(
     async (
@@ -92,16 +86,14 @@ const Index = () => {
         }
       } catch (error) {
         console.error("Error generating proposal:", error);
-        let errorMessage = error instanceof Error ? error.message : (isArabic ? "يرجى المحاولة مرة أخرى." : "Please try again.");
+        let errorMessage = error instanceof Error ? error.message : t('error.generation.default');
         
         if (errorMessage.includes("Failed to send a request")) {
-          errorMessage = isArabic 
-            ? "تعذر الاتصال بالخادم. قد يكون هناك ضغط على الخدمة، يرجى المحاولة بعد قليل." 
-            : "Could not connect to server. The service might be busy, please try again momentarily.";
+          errorMessage = t('error.generation.connection');
         }
 
         toast({
-          title: isArabic ? "فشل الإنشاء" : "Generation failed",
+          title: t('error.generation.title'),
           description: errorMessage,
           variant: "destructive",
         });
@@ -109,7 +101,7 @@ const Index = () => {
         setIsLoading(false);
       }
     },
-    [toast, isArabic]
+    [toast, t]
   );
 
   const handleRegenerate = useCallback(() => {
@@ -124,27 +116,20 @@ const Index = () => {
     }
   }, [lastRequest, generateProposal]);
 
-  const handlePlatformChange = (newPlatform: Platform) => {
-    setPlatform(newPlatform);
-    setProposal(""); // Clear proposal when platform changes
-  };
-
   return (
     <div 
       className={`min-h-screen bg-background ${isArabic ? "font-arabic" : ""}`}
-      dir={isArabic ? "rtl" : "ltr"}
+      dir={dir}
     >
       <Header />
       
       <main className="container max-w-3xl mx-auto px-4 py-8 space-y-8">
         <div className="text-center space-y-2">
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground text-balance">
-            {isArabic ? "اكتب عروضاً احترافية لمستقل" : "Write winning Upwork proposals"}
+            {t('index.heading')}
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            {isArabic 
-              ? "الصق وصف المشروع واحصل على عرض احترافي بأسلوب بشري في ثوانٍ. بدون قوالب جاهزة."
-              : "Paste a job description and get a professional, human-sounding proposal in seconds. No robotic templates."}
+            {t('index.subheading')}
           </p>
         </div>
 
@@ -153,7 +138,7 @@ const Index = () => {
           <Alert className="bg-primary/5 border-primary/20">
             <DollarSign className="h-4 w-4" />
             <AlertTitle className="flex items-center justify-between">
-              <span>بيانات التسعير جاهزة</span>
+              <span>{t('index.pricingAlert.title')}</span>
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -164,12 +149,12 @@ const Index = () => {
               </Button>
             </AlertTitle>
             <AlertDescription className="mt-2">
-              <p className="text-sm mb-2">السعر المحدد: <strong>${pricingData.price}</strong></p>
+              <p className="text-sm mb-2">{t('index.pricingAlert.price')} <strong>${pricingData.price}</strong></p>
               <div className="bg-muted/50 rounded p-2 text-xs whitespace-pre-wrap max-h-32 overflow-y-auto">
                 {pricingData.paragraph}
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                ستتم إضافة فقرة التسعير تلقائياً إلى العرض المُنشأ
+                {t('index.pricingAlert.note')}
               </p>
             </AlertDescription>
           </Alert>
@@ -179,8 +164,6 @@ const Index = () => {
           <ProposalForm 
             onGenerate={generateProposal} 
             isLoading={isLoading}
-            platform={platform}
-            onPlatformChange={handlePlatformChange}
             pricingParagraph={pricingData?.paragraph}
           />
         </div>
@@ -191,7 +174,6 @@ const Index = () => {
               proposal={proposal}
               onRegenerate={handleRegenerate}
               isLoading={isLoading}
-              platform={platform}
             />
           </div>
         )}
@@ -200,7 +182,7 @@ const Index = () => {
       <footer className="border-t border-border mt-auto">
         <div className="container max-w-3xl mx-auto px-4 py-6">
           <p className="text-center text-xs text-muted-foreground">
-            {isArabic ? "© جميع الحقوق محفوظة لزكريا صافي" : "© All rights reserved to Zakaria Safi"}
+            {t('footer.copyright')}
           </p>
         </div>
       </footer>

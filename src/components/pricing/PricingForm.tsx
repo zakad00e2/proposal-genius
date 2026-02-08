@@ -24,6 +24,7 @@ import {
   ADDON_LABELS,
   SERVICE_LABELS,
 } from "@/lib/pricingEngine";
+import { usePlatform } from "@/hooks/usePlatform";
 
 interface PricingFormProps {
   onCalculate: (input: PricingInput) => Promise<void>;
@@ -43,7 +44,6 @@ const ADDON_OPTIONS: Addon[] = [
 
 export function PricingForm({ onCalculate, isLoading }: PricingFormProps) {
   const [serviceType, setServiceType] = useState<ServiceType>('wordpress_website');
-  const [pricingModel, setPricingModel] = useState<PricingModel>('fixed');
   const [complexity, setComplexity] = useState<Complexity>('medium');
   const [pages, setPages] = useState<number>(5);
   const [products, setProducts] = useState<number>(0);
@@ -52,8 +52,8 @@ export function PricingForm({ onCalculate, isLoading }: PricingFormProps) {
   const [contentReady, setContentReady] = useState<ContentReadiness>('ready');
   const [design, setDesign] = useState<DesignType>('template');
   const [urgency, setUrgency] = useState<Urgency>('normal');
-  const [currency, setCurrency] = useState<string>('USD');
   const [apiEndpoints, setApiEndpoints] = useState<number>(1);
+  const { lang, isArabic, t } = usePlatform();
 
   const showProducts = serviceType === 'woocommerce_store';
   const showPages = ['wordpress_website', 'woocommerce_store', 'landing_page'].includes(serviceType);
@@ -72,7 +72,7 @@ export function PricingForm({ onCalculate, isLoading }: PricingFormProps) {
     
     const input: PricingInput = {
       service_type: serviceType,
-      pricing_model: pricingModel,
+      pricing_model: 'fixed',
       complexity,
       pages: showPages ? pages : 0,
       products: showProducts ? products : 0,
@@ -81,7 +81,7 @@ export function PricingForm({ onCalculate, isLoading }: PricingFormProps) {
       content_ready: contentReady,
       design,
       urgency,
-      currency,
+      currency: 'USD',
       api_endpoints: showApiEndpoints ? apiEndpoints : undefined,
     };
     
@@ -90,11 +90,11 @@ export function PricingForm({ onCalculate, isLoading }: PricingFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Row 1: Service Type & Pricing Model */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Service Type */}
         <div className="space-y-2">
           <Label htmlFor="service-type" className="text-sm font-medium">
-            نوع الخدمة
+            {t('pricingForm.serviceType')}
           </Label>
           <Select
             value={serviceType}
@@ -107,38 +107,17 @@ export function PricingForm({ onCalculate, isLoading }: PricingFormProps) {
             <SelectContent>
               {(Object.keys(SERVICE_LABELS) as ServiceType[]).map((type) => (
                 <SelectItem key={type} value={type}>
-                  {SERVICE_LABELS[type].ar}
+                  {SERVICE_LABELS[type][lang]}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="pricing-model" className="text-sm font-medium">
-            نموذج التسعير
-          </Label>
-          <Select
-            value={pricingModel}
-            onValueChange={(value: PricingModel) => setPricingModel(value)}
-            disabled={isLoading}
-          >
-            <SelectTrigger id="pricing-model" className="bg-background">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="fixed">سعر ثابت</SelectItem>
-              <SelectItem value="hourly">بالساعة</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Row 2: Complexity & Languages */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Complexity */}
         <div className="space-y-2">
           <Label htmlFor="complexity" className="text-sm font-medium">
-            مستوى التعقيد
+            {t('pricingForm.complexity')}
           </Label>
           <Select
             value={complexity}
@@ -149,16 +128,17 @@ export function PricingForm({ onCalculate, isLoading }: PricingFormProps) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="low">منخفض</SelectItem>
-              <SelectItem value="medium">متوسط</SelectItem>
-              <SelectItem value="high">عالي</SelectItem>
+              <SelectItem value="low">{t('pricingForm.complexity.low')}</SelectItem>
+              <SelectItem value="medium">{t('pricingForm.complexity.medium')}</SelectItem>
+              <SelectItem value="high">{t('pricingForm.complexity.high')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
+        {/* Languages */}
         <div className="space-y-2">
           <Label htmlFor="languages" className="text-sm font-medium">
-            لغات الموقع
+            {t('pricingForm.languages')}
           </Label>
           <Select
             value={languages}
@@ -169,20 +149,18 @@ export function PricingForm({ onCalculate, isLoading }: PricingFormProps) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="arabic">عربي (RTL)</SelectItem>
-              <SelectItem value="english">إنجليزي</SelectItem>
-              <SelectItem value="both">كلاهما</SelectItem>
+              <SelectItem value="arabic">{t('pricingForm.languages.arabic')}</SelectItem>
+              <SelectItem value="english">{t('pricingForm.languages.english')}</SelectItem>
+              <SelectItem value="both">{t('pricingForm.languages.both')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
-      </div>
 
-      {/* Row 3: Pages & Products */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Conditional Fields: Pages, Products, API */}
         {showPages && (
           <div className="space-y-2">
             <Label htmlFor="pages" className="text-sm font-medium">
-              عدد الصفحات
+              {t('pricingForm.pages')}
             </Label>
             <Input
               id="pages"
@@ -200,7 +178,7 @@ export function PricingForm({ onCalculate, isLoading }: PricingFormProps) {
         {showProducts && (
           <div className="space-y-2">
             <Label htmlFor="products" className="text-sm font-medium">
-              عدد المنتجات
+              {t('pricingForm.products')}
             </Label>
             <Input
               id="products"
@@ -218,7 +196,7 @@ export function PricingForm({ onCalculate, isLoading }: PricingFormProps) {
         {showApiEndpoints && (
           <div className="space-y-2">
             <Label htmlFor="api-endpoints" className="text-sm font-medium">
-              عدد نقاط API
+              {t('pricingForm.apiEndpoints')}
             </Label>
             <Input
               id="api-endpoints"
@@ -232,13 +210,11 @@ export function PricingForm({ onCalculate, isLoading }: PricingFormProps) {
             />
           </div>
         )}
-      </div>
 
-      {/* Row 4: Content & Design */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Content Readiness */}
         <div className="space-y-2">
           <Label htmlFor="content-ready" className="text-sm font-medium">
-            جاهزية المحتوى
+            {t('pricingForm.contentReady')}
           </Label>
           <Select
             value={contentReady}
@@ -249,15 +225,16 @@ export function PricingForm({ onCalculate, isLoading }: PricingFormProps) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ready">جاهز</SelectItem>
-              <SelectItem value="needs_copywriting">يحتاج كتابة محتوى</SelectItem>
+              <SelectItem value="ready">{t('pricingForm.contentReady.ready')}</SelectItem>
+              <SelectItem value="needs_copywriting">{t('pricingForm.contentReady.needs')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
+        {/* Design */}
         <div className="space-y-2">
           <Label htmlFor="design" className="text-sm font-medium">
-            التصميم
+            {t('pricingForm.design')}
           </Label>
           <Select
             value={design}
@@ -268,18 +245,16 @@ export function PricingForm({ onCalculate, isLoading }: PricingFormProps) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="template">استخدام قالب جاهز</SelectItem>
-              <SelectItem value="custom">تصميم مخصص</SelectItem>
+              <SelectItem value="template">{t('pricingForm.design.template')}</SelectItem>
+              <SelectItem value="custom">{t('pricingForm.design.custom')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
-      </div>
 
-      {/* Row 5: Urgency & Currency */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Urgency */}
         <div className="space-y-2">
           <Label htmlFor="urgency" className="text-sm font-medium">
-            الاستعجال
+            {t('pricingForm.urgency')}
           </Label>
           <Select
             value={urgency}
@@ -290,31 +265,9 @@ export function PricingForm({ onCalculate, isLoading }: PricingFormProps) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="normal">عادي</SelectItem>
-              <SelectItem value="rush">مستعجل (&lt;7 أيام)</SelectItem>
-              <SelectItem value="extreme">طارئ (&lt;3 أيام)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="currency" className="text-sm font-medium">
-            العملة
-          </Label>
-          <Select
-            value={currency}
-            onValueChange={(value: string) => setCurrency(value)}
-            disabled={isLoading}
-          >
-            <SelectTrigger id="currency" className="bg-background">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="USD">دولار أمريكي (USD)</SelectItem>
-              <SelectItem value="EUR">يورو (EUR)</SelectItem>
-              <SelectItem value="SAR">ريال سعودي (SAR)</SelectItem>
-              <SelectItem value="AED">درهم إماراتي (AED)</SelectItem>
-              <SelectItem value="EGP">جنيه مصري (EGP)</SelectItem>
+              <SelectItem value="normal">{t('pricingForm.urgency.normal')}</SelectItem>
+              <SelectItem value="rush">{t('pricingForm.urgency.rush')}</SelectItem>
+              <SelectItem value="extreme">{t('pricingForm.urgency.extreme')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -322,10 +275,10 @@ export function PricingForm({ onCalculate, isLoading }: PricingFormProps) {
 
       {/* Add-ons */}
       <div className="space-y-3">
-        <Label className="text-sm font-medium">ميزات إضافية</Label>
+        <Label className="text-sm font-medium">{t('pricingForm.addons')}</Label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {ADDON_OPTIONS.map((addon) => (
-            <div key={addon} className="flex items-center space-x-2 space-x-reverse">
+            <div key={addon} className={`flex items-center space-x-2 ${isArabic ? 'space-x-reverse' : ''}`}>
               <Checkbox
                 id={addon}
                 checked={addons.includes(addon)}
@@ -336,7 +289,7 @@ export function PricingForm({ onCalculate, isLoading }: PricingFormProps) {
                 htmlFor={addon}
                 className="text-sm font-normal cursor-pointer"
               >
-                {ADDON_LABELS[addon].ar}
+                {ADDON_LABELS[addon][lang]}
               </Label>
             </div>
           ))}
@@ -352,13 +305,13 @@ export function PricingForm({ onCalculate, isLoading }: PricingFormProps) {
       >
         {isLoading ? (
           <>
-            <Loader2 className="h-4 w-4 animate-spin ml-2" />
-            جارٍ الحساب...
+            <Loader2 className={`h-4 w-4 animate-spin ${isArabic ? 'ml-2' : 'mr-2'}`} />
+            {t('pricingForm.submitting')}
           </>
         ) : (
           <>
-            <Calculator className="h-4 w-4 ml-2" />
-            احسب السعر
+            <Calculator className={`h-4 w-4 ${isArabic ? 'ml-2' : 'mr-2'}`} />
+            {t('pricingForm.submit')}
           </>
         )}
       </Button>

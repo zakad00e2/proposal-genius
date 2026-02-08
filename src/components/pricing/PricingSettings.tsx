@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Save } from "lucide-react";
 import { UserSettings, DEFAULT_USER_SETTINGS } from "@/lib/pricingEngine";
+import { usePlatform } from "@/hooks/usePlatform";
 
 interface PricingSettingsProps {
   settings: UserSettings;
@@ -13,6 +14,7 @@ interface PricingSettingsProps {
 
 export function PricingSettings({ settings, onSave }: PricingSettingsProps) {
   const [localSettings, setLocalSettings] = useState<UserSettings>(settings);
+  const { isArabic, t } = usePlatform();
 
   const handleSave = () => {
     onSave(localSettings);
@@ -25,9 +27,9 @@ export function PricingSettings({ settings, onSave }: PricingSettingsProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">إعدادات التسعير الشخصية</h3>
+        <h3 className="text-lg font-semibold">{t('settings.title')}</h3>
         <Button variant="ghost" size="sm" onClick={handleReset}>
-          إعادة تعيين
+          {t('settings.reset')}
         </Button>
       </div>
 
@@ -35,7 +37,7 @@ export function PricingSettings({ settings, onSave }: PricingSettingsProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="hourly-rate" className="text-sm font-medium">
-            سعر الساعة (USD)
+            {t('settings.hourlyRate')}
           </Label>
           <Input
             id="hourly-rate"
@@ -53,7 +55,7 @@ export function PricingSettings({ settings, onSave }: PricingSettingsProps) {
 
         <div className="space-y-2">
           <Label htmlFor="min-price" className="text-sm font-medium">
-            الحد الأدنى للمشروع (USD)
+            {t('settings.minPrice')}
           </Label>
           <Input
             id="min-price"
@@ -72,12 +74,12 @@ export function PricingSettings({ settings, onSave }: PricingSettingsProps) {
 
       {/* Multiplier Toggles */}
       <div className="space-y-4">
-        <Label className="text-sm font-medium">تفعيل/تعطيل المعاملات</Label>
+        <Label className="text-sm font-medium">{t('settings.multipliers')}</Label>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex items-center justify-between p-3 border rounded-lg">
             <Label htmlFor="complexity-mult" className="text-sm cursor-pointer">
-              معامل التعقيد
+              {t('settings.complexityMult')}
             </Label>
             <Switch
               id="complexity-mult"
@@ -91,7 +93,7 @@ export function PricingSettings({ settings, onSave }: PricingSettingsProps) {
 
           <div className="flex items-center justify-between p-3 border rounded-lg">
             <Label htmlFor="language-mult" className="text-sm cursor-pointer">
-              معامل اللغات
+              {t('settings.languageMult')}
             </Label>
             <Switch
               id="language-mult"
@@ -105,7 +107,7 @@ export function PricingSettings({ settings, onSave }: PricingSettingsProps) {
 
           <div className="flex items-center justify-between p-3 border rounded-lg">
             <Label htmlFor="content-mult" className="text-sm cursor-pointer">
-              معامل المحتوى
+              {t('settings.contentMult')}
             </Label>
             <Switch
               id="content-mult"
@@ -119,7 +121,7 @@ export function PricingSettings({ settings, onSave }: PricingSettingsProps) {
 
           <div className="flex items-center justify-between p-3 border rounded-lg">
             <Label htmlFor="design-mult" className="text-sm cursor-pointer">
-              معامل التصميم
+              {t('settings.designMult')}
             </Label>
             <Switch
               id="design-mult"
@@ -133,7 +135,7 @@ export function PricingSettings({ settings, onSave }: PricingSettingsProps) {
 
           <div className="flex items-center justify-between p-3 border rounded-lg">
             <Label htmlFor="urgency-mult" className="text-sm cursor-pointer">
-              معامل الاستعجال
+              {t('settings.urgencyMult')}
             </Label>
             <Switch
               id="urgency-mult"
@@ -149,8 +151,8 @@ export function PricingSettings({ settings, onSave }: PricingSettingsProps) {
 
       {/* Save Button */}
       <Button onClick={handleSave} className="w-full">
-        <Save className="h-4 w-4 ml-2" />
-        حفظ الإعدادات
+        <Save className={`h-4 w-4 ${isArabic ? 'ml-2' : 'mr-2'}`} />
+        {t('settings.save')}
       </Button>
     </div>
   );

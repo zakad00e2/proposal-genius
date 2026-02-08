@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Settings, Calculator } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { usePlatform } from "@/hooks/usePlatform";
 
 const STORAGE_KEY = "offerly_pricing_settings";
 
@@ -23,6 +24,7 @@ const Pricing = () => {
   const [lastInput, setLastInput] = useState<PricingInput | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { isArabic, dir, t } = usePlatform();
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -42,10 +44,10 @@ const Pricing = () => {
     setUserSettings(settings);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
     toast({
-      title: "تم حفظ الإعدادات",
-      description: "تم حفظ إعداداتك بنجاح",
+      title: t('settings.saved.title'),
+      description: t('settings.saved.desc'),
     });
-  }, [toast]);
+  }, [toast, t]);
 
   const handleCalculate = useCallback(async (input: PricingInput) => {
     setIsCalculating(true);
@@ -63,20 +65,20 @@ const Pricing = () => {
       setResult(pricingResult);
       
       toast({
-        title: "تم حساب السعر",
-        description: `السعر النموذجي: $${pricingResult.typical_price}`,
+        title: t('pricing.calculated.title'),
+        description: `${t('pricing.calculated.desc')}${pricingResult.typical_price}`,
       });
     } catch (error) {
       console.error("Error calculating price:", error);
       toast({
-        title: "فشل الحساب",
-        description: "حدث خطأ أثناء حساب السعر",
+        title: t('pricing.error.title'),
+        description: t('pricing.error.desc'),
         variant: "destructive",
       });
     } finally {
       setIsCalculating(false);
     }
-  }, [userSettings, toast]);
+  }, [userSettings, toast, t]);
 
   const handleSendToProposal = useCallback((pricingParagraph: string, selectedPrice: number) => {
     // Store in sessionStorage for the proposal generator to pick up
@@ -89,13 +91,13 @@ const Pricing = () => {
     navigate("/");
     
     toast({
-      title: "تم الإرسال",
-      description: "تم إرسال بيانات التسعير إلى مولّد العرض",
+      title: t('pricing.sent.title'),
+      description: t('pricing.sent.desc'),
     });
-  }, [navigate, toast]);
+  }, [navigate, toast, t]);
 
   return (
-    <div className="min-h-screen bg-background font-arabic" dir="rtl">
+    <div className={`min-h-screen bg-background ${isArabic ? "font-arabic" : ""}`} dir={dir}>
       <Header />
       
       <main className="container max-w-4xl mx-auto px-4 py-8 space-y-8">
@@ -104,11 +106,11 @@ const Pricing = () => {
           <div className="flex items-center justify-center gap-3 mb-4">
             <Calculator className="h-8 w-8 text-primary" />
             <h2 className="text-2xl sm:text-3xl font-semibold text-foreground">
-              تحديد سعر العمل
+              {t('pricing.heading')}
             </h2>
           </div>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            أدخل تفاصيل مشروعك واحصل على تقدير احترافي للسعر مع باقات جاهزة وفقرة تسعير قابلة للنسخ
+            {t('pricing.subheading')}
           </p>
           
           {/* Settings Toggle */}
@@ -118,8 +120,8 @@ const Pricing = () => {
             onClick={() => setShowSettings(!showSettings)}
             className="mt-4"
           >
-            <Settings className="h-4 w-4 ml-2" />
-            {showSettings ? "إخفاء الإعدادات" : "إعدادات التسعير"}
+            <Settings className={`h-4 w-4 ${isArabic ? 'ml-2' : 'mr-2'}`} />
+            {showSettings ? t('pricing.settingsToggle.hide') : t('pricing.settingsToggle.show')}
           </Button>
         </div>
 
@@ -155,7 +157,7 @@ const Pricing = () => {
       <footer className="border-t border-border mt-auto">
         <div className="container max-w-4xl mx-auto px-4 py-6">
           <p className="text-center text-xs text-muted-foreground">
-            © جميع الحقوق محفوظة لزكريا صافي
+            {t('footer.copyright')}
           </p>
         </div>
       </footer>
