@@ -21,7 +21,7 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved === "upwork" || saved === "mostaql") return saved;
     } catch { /* ignore localStorage errors */ }
-    return "upwork";
+    return "mostaql";
   });
 
   const lang: Lang = platform === "mostaql" ? "ar" : "en";
